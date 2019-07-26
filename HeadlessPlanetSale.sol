@@ -6,10 +6,11 @@ pragma solidity 0.4.24;
 import './Ecliptic.sol';
 
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/lifecycle/Destructible.sol';
 
 //	HeadlessPlanetSale: headless sales of Urbit planets
 //
-contract HeadlessPlanetSale is Ownable
+contract HeadlessPlanetSale is Ownable, Destructible
 {
 	//  PlanetSold: planet has been sold
 	//
@@ -36,23 +37,23 @@ contract HeadlessPlanetSale is Ownable
 	{
 		require(	(_spawningPoint < 0x10000) &&
 							(_spawningPoint >= 0x100)	);
-		azimuth = _azimuth;
+		setAzimuth(_azimuth);
 		setPrice(_price);
 		lastSpawnedPoint = _spawningPoint;
 	}
 
 	//	(): fallback function spawns the next available planet
-  //
+	//
 	function() 
 		external 
 		payable 
 	{
 		//	caller must pay exactly the price of a planet
-   	//
+		//
 		require(msg.value == price);
 
 		//	determine the spawn candidate's Azimuth point
-    //
+		//
 		uint32 planet = lastSpawnedPoint + 0x10000;
 
 		//	the spawn candidate's point must be less than the maximum Azimuth point
@@ -97,6 +98,15 @@ contract HeadlessPlanetSale is Ownable
 							//	prefix must be linked
 							//
 							azimuth.hasBeenLinked(prefix)	);
+	}
+
+	//	setAzimuth(): set Azimuth contract address
+	//
+	function setAzimuth(Azimuth _azimuth)
+		public
+		onlyOwner
+	{
+		azimuth = _azimuth;
 	}
 
 	//	setPrice(): configure the price in wei per planet
